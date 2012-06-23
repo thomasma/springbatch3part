@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:tx="http://www.springframework.org/schema/tx" xmlns:batch="http://www.springframework.org/schema/batch"
+	xmlns:context="http://www.springframework.org/schema/context"
+
+	xsi:schemaLocation="
+    http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+    http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.0.xsd
+    http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.0.xsd
+    http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch-2.1.xsd
+    http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd">
+
+	<!-- 1) USE ANNOTATIONS TO IDENTIFY AND WIRE SPRING BEANS. -->
+	<context:component-scan base-package="com.batch" />
+	
+	<!-- 2) DATASOURCE, TRANSACTION MANAGER AND JDBC TEMPLATE -->
+	<bean id="dataSource"
+		class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="driverClassName" value="com.mysql.jdbc.Driver" />
+		<property name="url" value="jdbc:mysql://localhost/seamdb" />
+		<property name="username" value="root" />
+		<property name="password" value="admin" />
+	</bean>
+
+	<bean id="transactionManager"
+		class="org.springframework.batch.support.transaction.ResourcelessTransactionManager">
+	</bean>
+	
+	<bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+	
+	<!-- 3) JOB REPOSITORY - WE USE IN-MEMORY REPOSITORY FOR OUR EXAMPLE -->
+	<bean id="jobRepository"
+		class="org.springframework.batch.core.repository.support.MapJobRepositoryFactoryBean">
+		<property name="transactionManager" ref="transactionManager" />
+	</bean>
+
+	<!-- 4) LAUNCH JOBS FROM A REPOSITORY -->
+	<bean id="jobLauncher"
+		class="org.springframework.batch.core.launch.support.SimpleJobLauncher">
+		<property name="jobRepository" ref="jobRepository" />
+	</bean>
+
+	<!-- 5) Beans representing the 2 job steps. -->
+	<!-- Step1 - print hello world -->
+	<bean id="helloTask" class="com.batch.simpletask.HelloTask">
+		<property name="taskStartMessage" value="Hello World - the time is now " />
+	</bean>
+	
+	<!-- Step2 - print current time -->
+	<bean id="timeTask" class="com.batch.simpletask.TimeTask" />
+
+
+	<!-- 6) FINALLY OUR JOB DEFINITION. THIS IS A 2 STEP JOB -->
+	<batch:job id="simpleJob">
+		<batch:listeners>
+			<batch:listener ref="appJobExecutionListener" />
+		</batch:listeners>
+		<batch:step id="step1" next="step2">
+			<batch:tasklet ref="helloTask" />
+		</batch:step>
+		<batch:step id="step2">
+			<batch:tasklet ref="timeTask" />
+		</batch:step>
+	</batch:job>
+
+</beans>
+
