@@ -5,7 +5,6 @@ import java.time.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
-import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobExecutionListener;
 import org.springframework.stereotype.Component;
@@ -33,15 +32,19 @@ public class AppJobExecutionListener implements JobExecutionListener {
 		var duration = Duration.between(jobExecution.getStartTime(), jobExecution.getEndTime());
 		var exitDescription = jobExecution.getExitStatus().getExitDescription();
 
-		if (jobExecution.getStatus() == BatchStatus.COMPLETED) {
-			logger.info("Job completed (id={}) in {}{}", jobExecution.getJobId(), formatDuration(duration),
-					exitDescription.isEmpty() ? "" : " - " + exitDescription);
-		} else if (jobExecution.getStatus() == BatchStatus.FAILED) {
-			logger.error("Job failed (id={}) after {}{}", jobExecution.getJobId(), formatDuration(duration),
-					exitDescription.isEmpty() ? "" : " - " + exitDescription);
-			for (var ex : jobExecution.getAllFailureExceptions()) {
-				logger.error("  Failure cause: {}", ex.getMessage());
+		var detail = exitDescription.isEmpty() ? "" : " - " + exitDescription;
+		switch (jobExecution.getStatus()) {
+			case COMPLETED -> logger.info("Job completed (id={}) in {}{}", jobExecution.getJobId(),
+					formatDuration(duration), detail);
+			case FAILED -> {
+				logger.error("Job failed (id={}) after {}{}", jobExecution.getJobId(),
+						formatDuration(duration), detail);
+				for (var ex : jobExecution.getAllFailureExceptions()) {
+					logger.error("  Failure cause: {}", ex.getMessage());
+				}
 			}
+			default -> logger.warn("Job ended (id={}) with status {} after {}{}", jobExecution.getJobId(),
+					jobExecution.getStatus(), formatDuration(duration), detail);
 		}
 
 		batchMetricsLogger.recordJobMetrics(jobExecution);

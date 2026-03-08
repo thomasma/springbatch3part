@@ -1,12 +1,12 @@
 # Spring Batch 3 Part Series
 
-**Using Spring 6.2.3 & Spring Batch 5.2.2 (Java 17+)**
+**Using Spring 6.2.3 & Spring Batch 5.2.2 (Java 21+)**
 
 This project demonstrates three common Spring Batch patterns using XML configuration and an embedded HSQLDB database.
 
 ## Prerequisites
 
-- Java 17 or higher
+- Java 21 or higher
 - Maven 3.8+
 
 ## Getting Started
@@ -110,13 +110,13 @@ This project was originally written in 2013 using Java 1.5, Spring 3.1, and Spri
 
 | Component        | Before (2013)     | After             |
 |------------------|-------------------|--------------------|
-| Java             | 1.5               | 17                 |
+| Java             | 1.5               | 21                 |
 | Spring Framework | 3.1               | 6.2.3              |
 | Spring Batch     | 2.1               | 5.2.2              |
 | JUnit            | 3.x               | 5.11.4 (Jupiter)   |
 | HSQLDB           | 1.8               | 2.7.4              |
 | Logging          | commons-logging    | SLF4J 2.0 + Logback 1.5 |
-| Build            | Maven (Java 1.5)  | Maven (Java 17)    |
+| Build            | Maven (Java 1.5)  | Maven (Java 21)    |
 
 ### Java Language Modernization
 
@@ -128,6 +128,7 @@ This project was originally written in 2013 using Java 1.5, Spring 3.1, and Spri
 - **Removed `throws Exception`** — Cleaned up unnecessary checked exception declarations on tasklet methods
 - **Meaningful parameter names** — Renamed `arg0, arg1` to `contribution, chunkContext` in tasklet methods
 - **Extracted helper method** — Deduplicated dollar-parsing code in `LedgerMapper` into `parseDollarAmount()`
+- **Enhanced switch** — Replaced if/else chain on `BatchStatus` with pattern matching switch expression (Java 21)
 - **Wildcard cleanup** — Changed `Chunk<? extends Object>` to `Chunk<?>` in listener signatures
 
 ### Spring Batch Framework Improvements
