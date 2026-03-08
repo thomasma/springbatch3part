@@ -5,8 +5,8 @@ create table ledger (
    chk_nbr VARCHAR(10) not null,
    chk_dt date,
    pymt_typ VARCHAR(50) not null,
-   dpst_amt double,
-   pymt_amt double,
+   dpst_amt DECIMAL(12,2),
+   pymt_amt DECIMAL(12,2),
    comments VARCHAR(100),
    constraint PID primary key (id)  
  );

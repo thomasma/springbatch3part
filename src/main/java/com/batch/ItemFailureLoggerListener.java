@@ -1,20 +1,24 @@
 package com.batch;
 
-import org.apache.log4j.Logger;
-import org.springframework.batch.core.listener.ItemListenerSupport;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.batch.core.ItemReadListener;
+import org.springframework.batch.core.ItemWriteListener;
+import org.springframework.batch.item.Chunk;
 import org.springframework.stereotype.Component;
 
 @Component("itemFailureLoggerListener")
-public class ItemFailureLoggerListener extends ItemListenerSupport {
-	private final static Logger logger = Logger
+public class ItemFailureLoggerListener implements ItemReadListener<Object>, ItemWriteListener<Object> {
+	private static final Logger logger = LoggerFactory
 			.getLogger(ItemFailureLoggerListener.class);
 
+	@Override
 	public void onReadError(Exception ex) {
 		logger.error("Encountered error on read", ex);
 	}
 
-	public void onWriteError(Exception ex, Object item) {
+	@Override
+	public void onWriteError(Exception ex, Chunk<?> items) {
 		logger.error("Encountered error on write", ex);
 	}
-
 }

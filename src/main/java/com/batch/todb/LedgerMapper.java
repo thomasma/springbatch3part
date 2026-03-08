@@ -1,46 +1,39 @@
 package com.batch.todb;
 
+import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.text.ParseException;
+import java.time.ZoneId;
 
 import org.springframework.batch.item.file.mapping.FieldSetMapper;
 import org.springframework.batch.item.file.transform.FieldSet;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
 
 @Component("ledgerMapper")
-public class LedgerMapper implements FieldSetMapper {
-	private final static String DATE_PATTERN = "mm/DD/yy";
-	private final static String DOLLAR_PATTERN = "$###,###.###";
+public class LedgerMapper implements FieldSetMapper<Ledger> {
+	private static final String DATE_PATTERN = "mm/DD/yy";
+	private final DecimalFormat dollarFormat = new DecimalFormat("$###,###.###");
 
-	public Object mapFieldSet(FieldSet fs) {
-		Ledger item = new Ledger();
+	@Override
+	public Ledger mapFieldSet(FieldSet fs) {
 		int idx = 0;
-		item.setReceiptDate(fs.readDate(idx++, DATE_PATTERN));
-		item.setMemberName(fs.readString(idx++));
-		item.setCheckNumber(fs.readString(idx++));
-		item.setCheckDate(fs.readDate(idx++, DATE_PATTERN));
-		item.setPaymentType(fs.readString(idx++));
+		return new Ledger(
+				0,
+				fs.readDate(idx++, DATE_PATTERN).toInstant().atZone(ZoneId.systemDefault()).toLocalDate(),
+				fs.readString(idx++),
+				fs.readString(idx++),
+				fs.readDate(idx++, DATE_PATTERN).toInstant().atZone(ZoneId.systemDefault()).toLocalDate(),
+				fs.readString(idx++),
+				parseDollarAmount(fs.readString(idx++)),
+				parseDollarAmount(fs.readString(idx++)),
+				null);
+	}
 
-		// deposit amount
+	private BigDecimal parseDollarAmount(String value) {
 		try {
-			DecimalFormat fmttr = new DecimalFormat(DOLLAR_PATTERN);
-			Number number = fmttr.parse(fs.readString(idx++));
-			item.setDepositAmount(number.doubleValue());
+			return BigDecimal.valueOf(dollarFormat.parse(value).doubleValue());
 		} catch (ParseException e) {
-			item.setDepositAmount(0);
+			return BigDecimal.ZERO;
 		}
-
-		// payment amount
-		try {
-			DecimalFormat fmttr = new DecimalFormat(DOLLAR_PATTERN);
-			Number number = fmttr.parse(fs.readString(idx++));
-			item.setPaymentAmount(number.doubleValue());
-		} catch (ParseException e) {
-			item.setPaymentAmount(0);
-		}
-
-		//
-		return item;
 	}
 }
